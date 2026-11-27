@@ -1,5 +1,7 @@
 # snkwz排版工具
 
+[English](./README.en.md)
+
 基于 [WeChat MP HTML Source Helper](https://github.com/shyboy/wechat-mp-html-source-helper) 开发。
 
 ## 自用版
