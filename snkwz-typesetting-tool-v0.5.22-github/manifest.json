@@ -1,0 +1,42 @@
+﻿{
+  "manifest_version": 3,
+  "name": "snkwz排版工具",
+  "version": "0.5.22",
+  "permissions": ["storage"],
+  "description": "为微信公众号后台编辑器提供 HTML 源码导入与读取能力。",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["icons/icon-32.png"],
+      "matches": ["https://mp.weixin.qq.com/*"]
+    }
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://mp.weixin.qq.com/*"],
+      "js": ["image-bridge.js"],
+      "world": "MAIN",
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://mp.weixin.qq.com/*"
+      ],
+      "js": [
+        "library.js",
+        "adjust.js",
+        "layout.js",
+        "content.js"
+      ],
+      "css": [
+        "styles.css"
+      ],
+      "run_at": "document_idle"
+    }
+  ]
+}
