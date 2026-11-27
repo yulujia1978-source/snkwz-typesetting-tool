@@ -60,6 +60,7 @@
     const storage = globalThis.chrome?.storage;
     let entries = {};
     let ready = false;
+    let loading;
     let editing = null;
     let editedAssets = [];
     const dirty = new Set([favoritePrefix, presetPrefix, templatePrefix]);
@@ -78,7 +79,7 @@
       .reverse();
 
     async function save(key, value) {
-      if (!ready) {
+      if (!ready && !await loading) {
         message("无法读取扩展收藏库，请重新加载扩展并刷新页面。", true);
         return false;
       }
@@ -93,12 +94,18 @@
       }
     }
 
-    function favorite(asset) {
+    async function favorite(asset) {
+      if (!ready) await loading;
       if (byPrefix(favoritePrefix).some(([, item]) =>
         item.name === asset.name && item.group === asset.group && item.html === asset.html && item.style === asset.style
-      )) return message("这个样式已经收藏。");
+      )) {
+        message("这个素材已在「我的收藏」里。");
+        return true;
+      }
       const key = favoritePrefix + crypto.randomUUID();
-      return save(key, asset);
+      const saved = await save(key, asset);
+      if (saved) message("已添加到「我的收藏」。");
+      return saved;
     }
 
     function use(asset) {
@@ -313,14 +320,18 @@
         }
         renderVisibleLibrary();
       });
-      storage.local.get(null).then((saved) => {
+      loading = storage.local.get(null).then((saved) => {
         entries = { ...saved, ...entries };
         ready = true;
         dirty.add(favoritePrefix);
         dirty.add(presetPrefix);
         dirty.add(templatePrefix);
         renderVisibleLibrary();
-      }).catch(() => message("读取本地收藏失败。", true));
+        return true;
+      }).catch(() => {
+        message("读取本地收藏失败。", true);
+        return false;
+      });
     }
 
     return {

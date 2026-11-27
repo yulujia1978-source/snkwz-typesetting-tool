@@ -344,6 +344,8 @@
 
 .oclaw-layout-gallery .oclaw-asset-card button:first-child { flex: 1; }
 .oclaw-layout-gallery .oclaw-asset-card button:last-child { min-height: 0; font-size: 12px; }
+.oclaw-gif-card { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.oclaw-layout-gallery .oclaw-gif-card > button:last-child { min-height: 0; font-size: 12px; }
 .oclaw-library-swatch { min-height: 42px; }
 
 .oclaw-library-item {

@@ -8,7 +8,7 @@ Based on [WeChat MP HTML Source Helper](https://github.com/shyboy/wechat-mp-html
 
 ## Features
 
-- **Layout library** — Browse or search text blocks, calls to action, and dividers. Customize text and colors, then insert a layout at the cursor. GIF dividers support HTTPS image URLs.
+- **Layout library** — Browse or search text blocks, calls to action, and dividers. Customize text and colors, then insert a layout at the cursor. Under **分割 → 动态** (Dividers → Animated), insert built-in GIFs by URL or download the original files and upload them through WeChat. Custom GIF dividers support HTTPS image URLs. [GIF credits and licenses](./assets/gif-dividers/README.md)
 - **Article backgrounds** — Apply a preset, a custom color, or an HTTPS image to the article body.
 - **Favorites** — Save layouts with their text, colors, and links. Insert a favorite directly or copy it and paste it into the editor.
 - **Style adjustments** — Select an inserted layout to recolor it, adjust spacing, move it, duplicate it, or clear its styling. You can also export text styles as PNGs and adjust the corner radius and shadow of images in the article.
@@ -18,7 +18,7 @@ Based on [WeChat MP HTML Source Helper](https://github.com/shyboy/wechat-mp-html
 
 ## Installation
 
-1. Download and extract the extension ZIP. [Download v0.5.22](https://github.com/yulujia1978-source/snkwz-typesetting-tool/raw/refs/heads/main/snkwz-typesetting-tool-v0.5.22-github.zip)
+1. Download and extract the extension ZIP. [Download from GitHub](https://github.com/yulujia1978-source/snkwz-typesetting-tool/archive/refs/heads/main.zip)
 2. Open `chrome://extensions/` and enable **Developer mode**.
 3. Click **Load unpacked** and select the extracted folder that directly contains `manifest.json`.
 4. Open or refresh a WeChat Official Accounts article editor at `https://mp.weixin.qq.com/`. Click the sidebar switch or the **snkwz排版工具** toolbar button. The sidebar shows the installed version.

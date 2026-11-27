@@ -11,6 +11,7 @@
 左侧开关旁显示当前扩展版本，直接读取 manifest.json。
 
 - **正文、引导、分割**支持按分类或关键词查找素材，并修改配色和文字。在正文定位光标，再点击面板中的素材预览。
+- **分割 → 动态**可插入、收藏或下载内置 GIF。直接插入使用原站的图片链接，发布时可下载原 GIF，再通过公众号图片入口上传。 [GIF 素材出处与授权](./assets/gif-dividers/README.md)
 - **背景**可为整篇正文应用预设或自定义颜色与 HTTPS 图片，也可以清除工具添加的背景。
 - **我的收藏**保存素材当前的文字、配色和链接，支持重复使用和删除。
 - 点选已插入的素材可打开**样式调整**，重新配色、设底色、调边距、加空行、移动、复制、收藏或清除样式。文字样式可下载为 PNG，再通过公众号图片入口上传。
@@ -22,7 +23,7 @@
 
 `WeChat MP HTML Source Helper` 是一个面向微信公众号后台编辑器的 Chrome 扩展，用来辅助导入和读取正文区域中的 HTML 内容。
 
-**[下载最新版安装包](https://github.com/shyboy/wechat-mp-html-source-helper/releases/latest/download/wechat-mp-html-source-helper.zip)** · [查看安装步骤](#安装) · [版本更新记录](https://github.com/shyboy/wechat-mp-html-source-helper/releases)
+**[下载 snkwz 排版工具](https://github.com/yulujia1978-source/snkwz-typesetting-tool/archive/refs/heads/main.zip)** · [查看安装步骤](#安装) · [上游版本记录](https://github.com/shyboy/wechat-mp-html-source-helper/releases)
 
 不需要会编程，也不需要安装 Node.js。下载 ZIP 后解压，在 Chrome 中加载即可使用。
 
@@ -61,18 +62,16 @@
 
 ### 第 1 步：下载安装包
 
-点击 **[下载最新版安装包](https://github.com/shyboy/wechat-mp-html-source-helper/releases/latest/download/wechat-mp-html-source-helper.zip)**，保存 `wechat-mp-html-source-helper.zip`。
-
-如果打开的是 [Release 页面](https://github.com/shyboy/wechat-mp-html-source-helper/releases/latest)，在页面下方的 **Assets** 中点击同名 ZIP 即可。`Source code (zip)` 和 `Source code (tar.gz)` 是给开发者用的源码包，本教程使用上面的安装包。
+下载并解压 **snkwz 排版工具**的项目 ZIP。 [下载项目 ZIP](https://github.com/yulujia1978-source/snkwz-typesetting-tool/archive/refs/heads/main.zip)
 
 ### 第 2 步：解压到固定文件夹
 
 在下载的 ZIP 上点击鼠标右键，选择 **全部解压**（或 **解压到同名文件夹**）。建议把解压后的文件夹放到“文档”等固定位置，安装后保留这个文件夹。
 
-打开解压后的 `wechat-mp-html-source-helper` 文件夹，里面应直接看到：
+打开解压后的项目文件夹，里面应直接看到：
 
 ```text
-wechat-mp-html-source-helper
+snkwz-typesetting-tool
 ├── manifest.json
 ├── content.js
 ├── styles.css
@@ -93,7 +92,7 @@ wechat-mp-html-source-helper
 
 点击 **加载已解压的扩展程序**，找到第 2 步的文件夹，选中它，再点击 **选择文件夹**。
 
-页面出现 **WeChat MP HTML Source Helper** 扩展卡片和绿色 `</>` 图标，表示加载成功。安装包通过解压加载，不需要把 ZIP 拖进浏览器。
+页面出现 **snkwz排版工具** 扩展卡片，表示加载成功。
 
 ### 第 5 步：回到公众号写文章
 
@@ -106,7 +105,7 @@ wechat-mp-html-source-helper
 1. 先在公众号保存当前草稿，再下载上面的最新版安装包。
 2. 将新版解压到原来的扩展文件夹，遇到同名文件时选择替换。确保 `manifest.json` 仍直接位于原来的文件夹里。
 3. 打开 `chrome://extensions/`，找到本扩展，点击卡片上的 **重新加载**（圆形箭头）按钮。
-4. 刷新公众号正文编辑页面。当前安装包版本为 **0.3.2**，可在扩展管理页核对。
+4. 刷新公众号正文编辑页面，在排版侧栏或扩展管理页核对版本。
 
 ### 遇到问题
 
@@ -115,7 +114,7 @@ wechat-mp-html-source-helper
 | 找不到“加载已解压的扩展程序” | 先打开扩展管理页右上角的“开发者模式” |
 | 提示“清单文件缺失”或找不到 `manifest.json` | 文件夹选错了。打开所选文件夹，确认里面直接有 `manifest.json`；如果里面还有一层文件夹，就选择里面那一层 |
 | 安装成功，但公众号里没有按钮 | 进入图文的正文编辑页，并刷新页面；同时看看右下角是否有悬浮按钮 |
-| 更新后还是旧功能 | 扩展卡片点一次“重新加载”，公众号页面也要刷新；检查版本是否为0.3.2 |
+| 更新后还是旧功能 | 在扩展卡片上点一次“重新加载”，刷新公众号页面，再核对侧栏版本 |
 
 ## 使用方法
 

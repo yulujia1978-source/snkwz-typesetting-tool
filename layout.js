@@ -16,7 +16,7 @@
     分割: {
       end: ["细线 END", "徽标 END"], 线条: ["细实线", "虚线"], 黑白: ["黑白双线"],
       彩色: ["彩色圆点", "渐变线"], 文艺: ["枝叶分隔"], 可爱: ["星星分隔"],
-      饰物: ["菱形分隔"], 动态: ["闪动分隔", "GIF 图片分割线"], 其他: ["章节分隔"]
+      饰物: ["菱形分隔"], 动态: ["闪动分隔"], "自定义 GIF": ["GIF 图片分割线"], 其他: ["章节分隔"]
     }
   };
 
@@ -29,6 +29,12 @@
     柔光: "radial-gradient(ellipse at top,#fff,transparent 75%)"
   };
   const colors = ["#faf7f0", "#fdf0f5", "#f1f6ff", "#edf8f4", "#f4f2fa", "#303344"];
+  const builtInGifs = [
+    ["彩虹流光", "rainbow.gif", "5/5c/Animated_rainbow_rule.gif"],
+    ["彩虹逆流", "rainbow-reverse.gif", "c/c4/Animated_rainbow_rule_fast_reverse.gif"],
+    ["跳动圆点", "dots.gif", "3/3f/Loading-dots.gif"],
+    ["跳动方块", "three-boxes.gif", "9/9d/Loading-3-box.gif"]
+  ];
 
   function escape(text) {
     return text.replace(/[&<>"']/g, (character) => ({
@@ -41,6 +47,13 @@
       const url = new URL(text.trim());
       return url.protocol === "https:" && !url.username && !url.password ? url.href : "";
     } catch { return ""; }
+  }
+
+  function gifDividerHtml(url, label) {
+    const image = url
+      ? `<img src="${escape(url)}" alt="${escape(label)}" style="display:inline-block;max-width:100%;height:auto;vertical-align:middle;">`
+      : "填写 GIF 图片地址后预览";
+    return `<section style="margin:12px 0;text-align:center;">${image}</section>`;
   }
 
   function frameDecoration(mark, color, align = "left", size = 16) {
@@ -72,9 +85,7 @@
 
     if (tab === "分割") {
       if (name === "GIF 图片分割线") {
-        const image = link ? `<img src="${escape(link)}" alt="${copy || "动态分割线"}" style="display:inline-block;max-width:100%;height:auto;vertical-align:middle;">`
-          : "填写 GIF 图片地址后预览";
-        return `<section style="margin:12px 0;text-align:center;">${image}</section>`;
+        return gifDividerHtml(link, text.trim() || "动态分割线");
       }
       const marks = { 彩色: "●  ●  ●", 文艺: "❧  ✦  ❧", 可爱: "☆  ★  ☆", 饰物: "◇  ◆  ◇", 其他: "·  ·  ·" };
       if (category === "线条") return box(line("&#8203;", name === "虚线" ? "dashed" : "solid"));
@@ -162,7 +173,7 @@
     return `background-color:${color};background-image:${image};background-size:18px 18px;`;
   }
 
-  function mount({ toolName, panel, textarea, insert, changeBackground, applyPreset, adjustMaterial, adjustImage, captureTemplate, message }) {
+  function mount({ toolName, panel, textarea, insert, changeBackground, applyPreset, adjustMaterial, adjustImage, favoriteImage, captureTemplate, message }) {
     const layout = document.createElement("section");
     layout.className = "oclaw-layout";
     layout.innerHTML = `
@@ -238,20 +249,58 @@
     const library = globalThis.WechatPersonalLibrary?.mount({
       root: layout.querySelector(".oclaw-library"), insert, changeBackground, applyPreset, captureTemplate, message, button, preview
     });
-    const adjustment = globalThis.WechatPersonalAdjustment?.mount({ panel, adjustMaterial, adjustImage, message });
+    const adjustment = globalThis.WechatPersonalAdjustment?.mount({ panel, adjustMaterial, adjustImage, favoriteImage, message });
     const libraryTabs = library ? ["我的收藏", "栏目预设", "个人模板"] : [];
 
     function wrapCard(card, name, getAsset) {
       if (!library) return card;
       const item = document.createElement("div");
       item.className = "oclaw-asset-card";
-      const save = button("收藏", () => {
+      const save = button("收藏", async () => {
         const asset = getAsset();
-        if (asset) library.favorite(asset);
+        if (!asset) return;
+        save.disabled = true;
+        const saved = await library.favorite(asset);
+        save.disabled = false;
+        save.textContent = saved ? "已收藏" : "收藏失败";
       });
+      item.addEventListener("focusout", () => { save.textContent = "收藏"; });
       save.setAttribute("aria-label", "收藏" + name);
       item.append(card, save);
       return item;
+    }
+
+    async function downloadGif(url, file) {
+      try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("GIF unavailable");
+        const objectUrl = URL.createObjectURL(await response.blob());
+        const link = document.createElement("a");
+        link.href = objectUrl;
+        link.download = file;
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(objectUrl), 5000);
+      } catch {
+        message("下载 GIF 失败，请重新加载扩展后再试。", true);
+      }
+    }
+
+    function buildGifCards() {
+      return builtInGifs.map(([name, file, source]) => {
+        const url = "https://upload.wikimedia.org/wikipedia/commons/" + source;
+        const local = globalThis.chrome?.runtime?.getURL?.("assets/gif-dividers/" + file) || url;
+        const asset = { name, group: "分割", html: gifDividerHtml(url, name) };
+        const card = button(name, () => insert(asset.html, asset));
+        card.setAttribute("aria-label", name);
+        card.prepend(preview({ html: gifDividerHtml(local, name) }));
+        const item = wrapCard(card, name, () => asset);
+        const download = button("下载 GIF", () => downloadGif(local, file));
+        download.setAttribute("aria-label", "下载 GIF · " + name);
+        const container = document.createElement("div");
+        container.className = "oclaw-gif-card";
+        container.append(item, download);
+        return { element: container, category: "动态", searchable: ("动态 gif " + name).toLowerCase() };
+      });
     }
 
     function customBackground() {
@@ -292,7 +341,7 @@
         }
         return cards;
       }
-      return Object.entries(groups[group]).flatMap(([category, names]) =>
+      const cards = Object.entries(groups[group]).flatMap(([category, names]) =>
         names.map((name) => {
           const gifDivider = name === "GIF 图片分割线";
           const usesLink = gifDivider || (group === "引导" && ["二维码", "阅读原文", "往期推荐"].includes(category));
@@ -303,8 +352,13 @@
           const getAsset = () => {
             const settings = gallerySettings();
             if (usesLink && !settings.link && (gifDivider || category === "二维码" || url.value.trim())) {
-              const required = gifDivider ? "GIF 图片地址" : category === "二维码" ? "二维码图片地址" : "链接";
-              message("请先填写有效的 HTTPS " + required + "。", true);
+              if (gifDivider) {
+                message("自定义 GIF 需要图片直链。使用内置动图请点「动态」，然后在素材卡片下点「收藏」。", true);
+                url.focus();
+              } else {
+                const required = category === "二维码" ? "二维码图片地址" : "链接";
+                message("请先填写有效的 HTTPS " + required + "。", true);
+              }
               return null;
             }
             return currentAsset(settings);
@@ -330,10 +384,14 @@
           };
         })
       );
+      if (group === "分割") cards.unshift(...buildGifCards());
+      return cards;
     }
 
     function gallerySettings() {
-      return { shade: color.value, text: copy.value, link: url.hidden ? "" : httpsUrl(url.value) };
+      const value = url.value.trim();
+      const address = tab === "分割" && value.startsWith("//") ? "https:" + value : value;
+      return { shade: color.value, text: copy.value, link: url.hidden ? "" : httpsUrl(address) };
     }
 
     const noResults = document.createElement("p");
@@ -351,7 +409,8 @@
       const settings = gallerySettings();
       let visible = 0;
       for (const { element, category, searchable, update } of galleryCards) {
-        const show = tab === "背景" || ((filter === "全部" || filter === category) && searchable.includes(keyword));
+        const matchesFilter = filter === category || (filter === "全部" && category !== "自定义 GIF");
+        const show = tab === "背景" || (matchesFilter && searchable.includes(keyword));
         element.hidden = !show;
         if (show) {
           update?.(settings);
@@ -380,14 +439,16 @@
       filters.hidden = gallery.hidden = hint.hidden = isLibrary;
       fields.hidden = copy.hidden = isBackground || isLibrary;
       background.hidden = !isBackground;
-      const gifFilter = tab === "分割" && ["全部", "动态"].includes(filter);
+      const gifFilter = tab === "分割" && filter === "自定义 GIF";
       const guideFilter = tab === "引导" && ["全部", "二维码", "阅读原文", "往期推荐"].includes(filter);
       url.hidden = !gifFilter && !guideFilter;
-      url.placeholder = gifFilter ? "HTTPS GIF 图片地址"
+      url.placeholder = gifFilter ? "自定义 GIF 的 HTTPS 图片地址"
         : filter === "二维码" ? "HTTPS 二维码图片地址" : "HTTPS 文章链接或二维码图片地址";
       url.setAttribute("aria-label", gifFilter ? "GIF 图片地址" : "素材链接");
       hint.textContent = isBackground
         ? "背景应用于整篇正文。可以换用另一款，或清除本工具添加的背景。"
+        : gifFilter ? "输入自定义 GIF 的图片直链。如果 GIF 已在正文里，点图片后选择「收藏为分割线」。"
+        : tab === "分割" && filter === "动态" ? "内置 GIF 可直接收藏。点击动图预览可插入正文。"
         : "先在正文点选插入位置，再点击素材预览。素材内的文字可在正文继续编辑。";
       library?.show(tab);
       if (galleryStarted && !isLibrary) renderGallery();
@@ -419,6 +480,9 @@
     return {
       ...adjustment,
       favorite: library?.favorite,
+      favoriteDivider(url, name) {
+        return library?.favorite({ name, group: "分割", html: gifDividerHtml(url, name) });
+      },
       open() {
         if (galleryStarted) return;
         galleryStarted = true;

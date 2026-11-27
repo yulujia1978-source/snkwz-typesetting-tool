@@ -47,7 +47,7 @@
     }
   }
 
-  function mount({ panel, adjustMaterial, adjustImage, message }) {
+  function mount({ panel, adjustMaterial, adjustImage, favoriteImage, message }) {
     const controls = document.createElement("section");
     controls.className = "oclaw-adjustment";
     controls.hidden = true;
@@ -88,6 +88,7 @@
         <label>圆角 <input type="number" name="radius" min="0" max="200" value="0" required> px</label>
         <label>阴影 <input type="number" name="shadow" min="0" max="100" value="0" required></label>
         <button type="submit">应用到图片</button>
+        <button type="button" data-favorite-image disabled>收藏为分割线</button>
       </form>
       <p class="oclaw-image-status" aria-live="polite"></p>`;
     controls.before(imageControls);
@@ -101,6 +102,8 @@
     });
     const imageForm = imageControls.querySelector("form");
     const { radius, shadow } = imageForm.elements;
+    const saveImage = imageForm.querySelector("[data-favorite-image]");
+    saveImage.addEventListener("click", favoriteImage);
     const imageStatus = imageControls.querySelector(".oclaw-image-status");
     function showImageStatus(text, error = false) {
       imageStatus.textContent = text;
@@ -124,6 +127,7 @@
     return {
       showImage(settings) {
         imageControls.hidden = !settings;
+        saveImage.disabled = !settings;
         showImageStatus("");
         if (!settings) return;
         radius.value = Math.min(200, Math.round(settings.radius));

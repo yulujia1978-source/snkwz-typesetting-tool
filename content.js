@@ -279,6 +279,27 @@
     });
   }
 
+  async function favoriteSelectedImage() {
+    const editor = findEditorTarget();
+    const image = selectedImage;
+    if (!image || !editor?.node.contains(image)) {
+      return adjustmentPanel?.imageStatus("请先点选正文中的图片。", true);
+    }
+    const source = [image.getAttribute("data-src"), image.currentSrc, image.getAttribute("src")]
+      .map(value => value?.trim())
+      .find(value => value && /^(https:)?\/\//i.test(value) && URL.canParse(value, editor.doc.baseURI));
+    if (!source) return adjustmentPanel?.imageStatus("这张图没有可复用的 HTTPS 地址。请先通过公众号图片入口上传。", true);
+    const url = new URL(source, editor.doc.baseURI);
+    if (url.protocol !== "https:" || url.username || url.password) {
+      return adjustmentPanel?.imageStatus("这张图没有可复用的 HTTPS 地址。", true);
+    }
+    const name = (image.alt.trim() || "正文图片分割线").slice(0, 60);
+    const saved = await adjustmentPanel?.favoriteDivider(url.href, name);
+    if (selectedImage === image) {
+      adjustmentPanel?.imageStatus(saved ? "已收藏，可在「我的收藏」中复制使用。" : "收藏失败，请查看侧栏提示。", !saved);
+    }
+  }
+
   function nativeImageFormat(image, radius, shadow) {
     const doc = image.ownerDocument;
     const id = crypto.getRandomValues(new Uint32Array(4)).join("-");
@@ -687,6 +708,7 @@
       applyPreset: applyArticlePreset,
       adjustMaterial,
       adjustImage,
+      favoriteImage: favoriteSelectedImage,
       captureTemplate,
       message: setMessage
     });

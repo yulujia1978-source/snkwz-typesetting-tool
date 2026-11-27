@@ -1,5 +1,6 @@
 const { test, before, after } = require('node:test');
 const assert = require('node:assert/strict');
+const { readFileSync } = require('node:fs');
 const path = require('node:path');
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright-core');
 
@@ -161,7 +162,7 @@ test('favorites, presets and personal templates persist across articles and can 
   assert.equal(await editor.innerHTML(), originalHtml);
   assert.equal(dialogs.length, dialogCount);
   await pickTab('分割');
-  await page.getByRole('button', { name: '动态', exact: true }).click();
+  await page.getByRole('button', { name: '自定义 GIF', exact: true }).click();
   await page.getByLabel('GIF 图片地址').fill('https://mp.weixin.qq.com/example.gif');
   await page.getByRole('button', { name: '收藏GIF 图片分割线', exact: true }).click();
   await pickTab('我的收藏');
@@ -199,6 +200,39 @@ test('favorites, presets and personal templates persist across articles and can 
   await templateCards.filter({ has: page.getByText('刚保存的模板', { exact: true }) })
     .getByRole('button', { name: '删除模板' }).click();
   assert.equal(await templateCards.count(), 25);
+  await pickTab('分割');
+  await page.getByRole('button', { name: '动态', exact: true }).click();
+  assert.equal(await page.getByLabel('GIF 图片地址').isVisible(), false);
+  assert.equal(await page.getByRole('button', { name: 'GIF 图片分割线', exact: true }).count(), 0);
+  const rainbow = page.getByRole('button', { name: '彩虹流光', exact: true });
+  const bundled = 'https://mp.weixin.qq.com/mock-extension/assets/gif-dividers/rainbow.gif';
+  const originalGif = readFileSync(path.join(__dirname, '../assets/gif-dividers/rainbow.gif'));
+  await page.route(bundled, route => route.fulfill({ contentType: 'image/gif', body: originalGif }));
+  assert.equal(await rainbow.locator('img').getAttribute('src'), bundled);
+  const downloadEvent = page.waitForEvent('download');
+  await page.getByRole('button', { name: '下载 GIF · 彩虹流光', exact: true }).click();
+  const download = await downloadEvent;
+  assert.equal(download.suggestedFilename(), 'rainbow.gif');
+  assert.deepEqual(readFileSync(await download.path()), originalGif);
+  await page.getByRole('button', { name: '收藏彩虹流光', exact: true }).click();
+  await page.getByRole('button', { name: '收藏彩虹流光', exact: true }).getByText('已收藏').waitFor();
+  await pickTab('我的收藏');
+  const builtInFavorite = page.locator('.oclaw-library-item').filter({ hasText: '彩虹流光' });
+  await builtInFavorite.getByRole('button', { name: '复制素材' }).click();
+  await page.waitForFunction(() => window.copiedTemplate.includes('Animated_rainbow_rule.gif'));
+  assert.match(await page.evaluate(() => window.copiedTemplate), /https:\/\/upload\.wikimedia\.org\//);
+  await editor.evaluate(node => {
+    const image = document.createElement('img');
+    image.alt = '正文 GIF';
+    image.setAttribute('data-src', 'https://mp.weixin.qq.com/article.gif?wx_fmt=gif');
+    node.append(image);
+  });
+  await editor.getByAltText('正文 GIF').dispatchEvent('click');
+  await page.getByRole('button', { name: '收藏为分割线', exact: true }).click();
+  await page.getByText('已收藏，可在「我的收藏」中复制使用。').waitFor();
+  const articleGif = page.locator('.oclaw-favorites .oclaw-library-item').filter({ hasText: '正文 GIF' });
+  await articleGif.getByRole('button', { name: '复制素材' }).click();
+  await page.waitForFunction(() => window.copiedTemplate.includes('article.gif?wx_fmt=gif'));
   assert.deepEqual(dialogs, []);
   assert.deepEqual(errors, []);
 });
@@ -251,15 +285,15 @@ test('layout panel inserts body, guide and divider, and applies, clears and rest
   await card('细实线').click();
   assert.equal(await editor.locator('p[style*="border-bottom"]').count(), 1);
 
-  await page.getByRole('button', { name: '动态', exact: true }).click();
+  await page.getByRole('button', { name: '自定义 GIF', exact: true }).click();
   await card('GIF 图片分割线').click();
-  assert.match(await page.getByRole('status').innerText(), /GIF 图片地址/);
+  assert.match(await page.getByRole('status').innerText(), /自定义 GIF 需要图片直链/);
   const gif = 'https://mmbiz.qpic.cn/example/divider.gif';
   await page.route(gif, route => route.fulfill({
     contentType: 'image/gif',
     body: Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64')
   }));
-  await page.getByLabel('GIF 图片地址').fill(gif);
+  await page.getByLabel('GIF 图片地址').fill(gif.slice('https:'.length));
   await card('GIF 图片分割线').click();
   const image = editor.locator('img');
   assert.equal(await image.getAttribute('src'), gif);
